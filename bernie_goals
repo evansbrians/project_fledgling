@@ -1,0 +1,21 @@
+
+# Management frame - Management actions by date ---------------------------
+
+Variables:
+* Field ID
+* Management action (e.g., hay, mow, cows added or removed, harvest)
+* Date
+
+# Management frame - Management action by year ----------------------------
+
+Variables:
+* Field ID
+* Year
+* Primary management (e.g., pasture, hay, rowcrop)
+* Management subclass (e.g., corn, fescue)
+* Herd size: NA if not pasture
+* Herd type: NA if not pasture
+
+# Spatial -----------------------------------------------------------------
+
+Variables: Field ID
