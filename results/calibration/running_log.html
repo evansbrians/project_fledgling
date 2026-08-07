@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Analysis assistant">
+<meta name="dcterms.date" content="2026-06-18">
+
+<title>Oxbow node-network calibration: methods log</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="running_log_files/libs/clipboard/clipboard.min.js"></script>
+<script src="running_log_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="running_log_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="running_log_files/libs/quarto-html/popper.min.js"></script>
+<script src="running_log_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="running_log_files/libs/quarto-html/anchor.min.js"></script>
+<link href="running_log_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="running_log_files/libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="running_log_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="running_log_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="running_log_files/libs/bootstrap/bootstrap-81267100e462c21b3d6c0d5bf76a3417.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#goal-and-verdict-up-front" id="toc-goal-and-verdict-up-front" class="nav-link active" data-scroll-target="#goal-and-verdict-up-front">Goal and verdict up front</a></li>
+  <li><a href="#data-and-pipeline" id="toc-data-and-pipeline" class="nav-link" data-scroll-target="#data-and-pipeline">Data and pipeline</a></li>
+  <li><a href="#what-the-geometry-allows-why-50-m-is-hard" id="toc-what-the-geometry-allows-why-50-m-is-hard" class="nav-link" data-scroll-target="#what-the-geometry-allows-why-50-m-is-hard">What the geometry allows (why 50 m is hard)</a></li>
+  <li><a href="#methods-tried-summary" id="toc-methods-tried-summary" class="nav-link" data-scroll-target="#methods-tried-summary">Methods tried (summary)</a>
+  <ul class="collapse">
+  <li><a href="#interpretation-by-method" id="toc-interpretation-by-method" class="nav-link" data-scroll-target="#interpretation-by-method">Interpretation by method</a></li>
+  </ul></li>
+  <li><a href="#global-curve-from-kierlivia-applied-to-blair-cross-dataset-test" id="toc-global-curve-from-kierlivia-applied-to-blair-cross-dataset-test" class="nav-link" data-scroll-target="#global-curve-from-kierlivia-applied-to-blair-cross-dataset-test">Global curve from Kierlivia, applied to Blair (cross-dataset test)</a></li>
+  <li><a href="#combining-blair-martin-best-method-predicted-to-blair" id="toc-combining-blair-martin-best-method-predicted-to-blair" class="nav-link" data-scroll-target="#combining-blair-martin-best-method-predicted-to-blair">Combining Blair + Martin (best method, predicted to Blair)</a></li>
+  <li><a href="#combined-data-500-m-geometry-gate-trilateration" id="toc-combined-data-500-m-geometry-gate-trilateration" class="nav-link" data-scroll-target="#combined-data-500-m-geometry-gate-trilateration">Combined data + 500 m geometry gate (trilateration)</a></li>
+  <li><a href="#s-windows-with-max-rssi-new-best-trilateration" id="toc-s-windows-with-max-rssi-new-best-trilateration" class="nav-link" data-scroll-target="#s-windows-with-max-rssi-new-best-trilateration">60 s windows with MAX RSSI (new best trilateration)</a>
+  <ul class="collapse">
+  <li><a href="#window-length-sweep" id="toc-window-length-sweep" class="nav-link" data-scroll-target="#window-length-sweep">Window-length sweep</a></li>
+  </ul></li>
+  <li><a href="#the-actionable-result-a-confidence-filter" id="toc-the-actionable-result-a-confidence-filter" class="nav-link" data-scroll-target="#the-actionable-result-a-confidence-filter">The actionable result: a confidence filter</a></li>
+  <li><a href="#successes-and-limitations" id="toc-successes-and-limitations" class="nav-link" data-scroll-target="#successes-and-limitations">Successes and limitations</a></li>
+  <li><a href="#suggested-next-steps-if-higher-accuracy-is-required" id="toc-suggested-next-steps-if-higher-accuracy-is-required" class="nav-link" data-scroll-target="#suggested-next-steps-if-higher-accuracy-is-required">Suggested next steps (if higher accuracy is required)</a></li>
+  <li><a href="#file-index" id="toc-file-index" class="nav-link" data-scroll-target="#file-index">File index</a></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Oxbow node-network calibration: methods log</h1>
+<p class="subtitle lead">Localization accuracy via cross-validation on Blair’s calibration walk</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Analysis assistant </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">June 18, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="goal-and-verdict-up-front" class="level2">
+<h2 class="anchored" data-anchor-id="goal-and-verdict-up-front">Goal and verdict up front</h2>
+<p><strong>Goal.</strong> Calibrate the radio-node network so we can tell which field (~50 m accuracy) a tagged bird is in, using RSSI. Cross-validate spatial accuracy on Blair’s calibration walk.</p>
+<p><strong>Verdict.</strong> The 50 m target is <strong>not reachable for <em>every</em> fix</strong> with RSSI from this network — the best honest, cross-validated <strong>overall</strong> median error is <strong>~83 m</strong> (150 s windows, max-RSSI trilateration; accuracy plateaus there). But <strong>50 m <em>is</em> reachable for about half of all fixes</strong>: at 150–180 s windows, fixes whose strongest node is ≥ −75 dBm have a <strong>median of ~48–49 m and make up ~48–51 % of all fixes</strong>. Shorter windows trade accuracy for temporal resolution (90 s → 95 m overall, 48 m on 52 % of fixes at ≥ −80 dBm; 60 s → 104 m). Earlier methods (NLS on 1 s windows, centroid+RF, Bayesian grid, Kierlivia global curve) hit 50 m on only ~11–19 % of fixes, so the max-RSSI windowed approach is both more accurate overall and far higher-coverage. The calibration “truth” carries position smear from window-averaging (the walker moves ~0.83 m/s × window); a deployed bird that stays put over a few minutes should smear less, so field accuracy may be better than these numbers.</p>
+<p>The single biggest limiter is the data, not the algorithm: nodes are ~163 m apart, and even the <em>closest detecting</em> node is a median ~100–170 m from the bird because RSSI is a weak, noisy proxy for proximity here (the nearest node is the strongest only ~57 % of the time).</p>
+<blockquote class="blockquote">
+<p>All errors below are <code>ml_dist</code> = haversine(predicted, GPS truth) in metres, under <strong>grouped 5-fold cross-validation</strong> (folds split by time-blocks so train/test events are temporally and spatially separated — an honest test). Two tag types (BOBO, EAME) are calibrated separately and pooled for reporting.</p>
+</blockquote>
+</section>
+<section id="data-and-pipeline" class="level2">
+<h2 class="anchored" data-anchor-id="data-and-pipeline">Data and pipeline</h2>
+<ul>
+<li><strong>Source.</strong> <code>oxbow.duckdb</code> → <code>raw</code> detections for the 32 Blair calibration tags during the walk (2023-04-27, ~3.8 h), plus <code>node_health</code> GPS fixes.</li>
+<li><strong>Node positions.</strong> Median GPS per node over a ±7-day window. These are stable (max day-vs-window shift 6 m, within-node spread ≤ 11 m), so node movement is <strong>not</strong> a meaningful error source here.</li>
+<li><strong>Truth.</strong> Bad Elf handheld GPS, joined to detections by rounded second.</li>
+<li><strong>Events.</strong> A localizable event = one tag in one time-window detected by ≥ 3 nodes (not all at the noise floor). Time-windowing (8 s) averages RSSI per node to denoise and adds nodes per fix.</li>
+</ul>
+</section>
+<section id="what-the-geometry-allows-why-50-m-is-hard" class="level2">
+<h2 class="anchored" data-anchor-id="what-the-geometry-allows-why-50-m-is-hard">What the geometry allows (why 50 m is hard)</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Quantity</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Node nearest-neighbour spacing (median)</td>
+<td>163 m</td>
+</tr>
+<tr class="even">
+<td>Walker → nearest node (median)</td>
+<td>79 m</td>
+</tr>
+<tr class="odd">
+<td><strong>Strongest <em>detecting</em> node → bird (median, 1 s)</strong></td>
+<td><strong>218 m</strong></td>
+</tr>
+<tr class="even">
+<td>Nearest <em>detecting</em> node → bird (median, 8 s windows)</td>
+<td>~100 m</td>
+</tr>
+<tr class="odd">
+<td>Nearest node is also the strongest-RSSI node</td>
+<td>57 % of events</td>
+</tr>
+</tbody>
+</table>
+<p>Because RSSI only weakly tracks distance, multilateration and centroid methods are bounded well above 50 m on the typical fix; they only do well when a strong, nearby detection exists.</p>
+</section>
+<section id="methods-tried-summary" class="level2">
+<h2 class="anchored" data-anchor-id="methods-tried-summary">Methods tried (summary)</h2>
+<p>See <code>summary_table.csv</code> for the machine-readable version. Sorted best → worst by median.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 18%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Key</th>
+<th>Method</th>
+<th style="text-align: right;">n</th>
+<th style="text-align: right;">median (m)</th>
+<th style="text-align: right;">mean (m)</th>
+<th style="text-align: right;">q80 (m)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>m6_centroid_residRF</td>
+<td><strong>Weighted centroid + RF residual correction</strong></td>
+<td style="text-align: right;">36 385</td>
+<td style="text-align: right;"><strong>127.9</strong></td>
+<td style="text-align: right;">170.5</td>
+<td style="text-align: right;">275.6</td>
+</tr>
+<tr class="even">
+<td>m3_centroid_p6</td>
+<td>RSSI-weighted centroid (signal^6)</td>
+<td style="text-align: right;">36 385</td>
+<td style="text-align: right;">160.6</td>
+<td style="text-align: right;">206.6</td>
+<td style="text-align: right;">313.9</td>
+</tr>
+<tr class="odd">
+<td>m3_centroid_p4</td>
+<td>RSSI-weighted centroid (signal^4)</td>
+<td style="text-align: right;">36 385</td>
+<td style="text-align: right;">163.3</td>
+<td style="text-align: right;">210.6</td>
+<td style="text-align: right;">326.3</td>
+</tr>
+<tr class="even">
+<td>m1_trilat_1s_w2</td>
+<td>NLS multilateration + 1/d² weight, top-k</td>
+<td style="text-align: right;">37 960</td>
+<td style="text-align: right;">175.9</td>
+<td style="text-align: right;">220.1</td>
+<td style="text-align: right;">355.6</td>
+</tr>
+<tr class="odd">
+<td>m2_trilat_win8</td>
+<td>NLS multilateration, 8 s windows</td>
+<td style="text-align: right;">36 385</td>
+<td style="text-align: right;">179.4</td>
+<td style="text-align: right;">223.8</td>
+<td style="text-align: right;">348.7</td>
+</tr>
+<tr class="even">
+<td>m0_trilat_global</td>
+<td>NLS multilateration, global curve (your method 1)</td>
+<td style="text-align: right;">37 960</td>
+<td style="text-align: right;">214.6</td>
+<td style="text-align: right;">256.8</td>
+<td style="text-align: right;">378.4</td>
+</tr>
+<tr class="odd">
+<td>m5_bayes_grid</td>
+<td>Bayesian grid, posterior mean over 20 m cells</td>
+<td style="text-align: right;">5 000</td>
+<td style="text-align: right;">240.9</td>
+<td style="text-align: right;">339.4</td>
+<td style="text-align: right;">566.7</td>
+</tr>
+<tr class="even">
+<td>m4_fingerprint_RF</td>
+<td>RF on full per-node RSSI vector → xy</td>
+<td style="text-align: right;">36 385</td>
+<td style="text-align: right;">679.3</td>
+<td style="text-align: right;">691.5</td>
+<td style="text-align: right;">993.0</td>
+</tr>
+</tbody>
+</table>
+<p>(<code>m1b_trilat_strong</code>: NLS using only nodes with RSSI &gt; −90 reaches 99 m median but survives on only ~90 events — i.e.&nbsp;it is really the confidence-filter idea in disguise.)</p>
+<section id="interpretation-by-method" class="level3">
+<h3 class="anchored" data-anchor-id="interpretation-by-method">Interpretation by method</h3>
+<p><strong>NLS multilateration (your baseline, methods 0–6 in <code>calibration_blair.R</code>).</strong> Fixing the small issues (units/joins) and running it under honest CV gives ~180–215 m median. Inverse-distance² weighting and restricting to the strongest nodes help; bias/weight tweaks help marginally. It is fundamentally limited by the flat RSSI–distance curve (fitted c ≈ 0.009, i.e.&nbsp;RSSI near the floor beyond ~300 m), so far/weak nodes contribute almost no positional information yet add noise.</p>
+<p><strong>RSSI-weighted centroid.</strong> A simple, robust estimator. Raising the weight exponent pushes it toward “snap to the strongest node” and improves median to ~160 m. Slightly better than trilateration and far more stable (no NLS non-convergence).</p>
+<p><strong>RF residual correction (best).</strong> Keep the weighted centroid, then train a random forest to predict the <em>systematic offset</em> (truth − centroid) from event geometry (centroid position, node count, strongest-node coordinates and RSSI, signal spread). This corrects the centroid’s inward bias and the predictable geometry-dependent errors → <strong>128 m median</strong>, the best overall. It generalises under block CV because it is anchored to physical node positions; the RF only learns a bounded correction.</p>
+<p><strong>Direct ML / fingerprinting (failed).</strong> Mapping the full per-node RSSI vector directly to location with RF/kNN/HGB collapses to ~680 m under honest block CV (it essentially predicts the mean location), even though leaky random-CV looks fine at ~160 m. Reason: Blair’s walk is a <strong>single, non-repeating path</strong>, so a held-out segment’s RSSI signature has no nearby training analogue. Fingerprinting needs a dense grid walk with revisits — a data-collection change, not an algorithm change.</p>
+<p><strong>Bayesian grid (posterior mean).</strong> With the weak curve the posterior is broad and multi-modal, so its mean is dragged toward the grid centre → 241 m. The MAP cell would help somewhat but cannot overcome the weak likelihood.</p>
+</section>
+</section>
+<section id="global-curve-from-kierlivia-applied-to-blair-cross-dataset-test" class="level2">
+<h2 class="anchored" data-anchor-id="global-curve-from-kierlivia-applied-to-blair-cross-dataset-test">Global curve from Kierlivia, applied to Blair (cross-dataset test)</h2>
+<p>A cleaner generalisation test than within-Blair CV: fit <strong>one global</strong> RSSI–distance curve from Kierlivia’s <em>controlled</em> data (only tags <strong>perpendicular</strong> to the node, <strong>2 m</strong> height, pooled), then use it to multilaterate <strong>Blair’s 2 m tags</strong>. Train and test are fully independent datasets/years, so no cross-validation is needed.</p>
+<p><strong>The curves are very different.</strong> Kierlivia (controlled, 0–199 m, perpendicular) is steep with a high floor: <code>a=-88.6, b=-44.9, c=0.049</code> (e-fold 20 m). Blair’s own 2 m curve is flat: <code>a=-103.0, b=-33.7, c=0.008</code> (e-fold 122 m). The controlled setup produces cleaner, stronger short-range signal.</p>
+<p><strong>Result.</strong></p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 15%">
+<col style="width: 21%">
+<col style="width: 21%">
+<col style="width: 21%">
+<col style="width: 21%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variant</th>
+<th style="text-align: right;">n fixes</th>
+<th style="text-align: right;">median (m)</th>
+<th style="text-align: right;">mean (m)</th>
+<th style="text-align: right;">q80 (m)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Kierlivia global, all detecting nodes</td>
+<td style="text-align: right;">10 224</td>
+<td style="text-align: right;">197.2</td>
+<td style="text-align: right;">246.5</td>
+<td style="text-align: right;">404.2</td>
+</tr>
+<tr class="even">
+<td>Blair’s own 2 m curve, all nodes (reference)</td>
+<td style="text-align: right;">10 224</td>
+<td style="text-align: right;">187.7</td>
+<td style="text-align: right;">232.7</td>
+<td style="text-align: right;">367.7</td>
+</tr>
+<tr class="odd">
+<td><strong>Kierlivia global, valid-domain (strong) nodes only</strong></td>
+<td style="text-align: right;"><strong>819</strong></td>
+<td style="text-align: right;"><strong>95.1</strong></td>
+<td style="text-align: right;">126.9</td>
+<td style="text-align: right;">193.8</td>
+</tr>
+</tbody>
+</table>
+<p>Strongest-RSSI filter on the valid-node Kierlivia result: ≥ −75 → 68 m, ≥ −72 → 56 m, <strong>≥ −70 → 46 m</strong> (n = 250).</p>
+<p><strong>Interpretation.</strong></p>
+<ul>
+<li>Using <strong>all</strong> nodes, the global Kierlivia curve is essentially tied with Blair’s own curve (197 vs 188 m). Both are dragged down by weak, far detections — the curve choice barely matters when most nodes carry little positional information.</li>
+<li>The Kierlivia curve’s <strong>high noise floor (−88.6 dBm)</strong> is the catch: most of Blair’s real detections are <em>weaker</em> than that, so they fall outside the curve’s valid domain and can only be read as “far”. Only ~8 % of Blair’s 2 m fixes have ≥ 3 nodes stronger than −88.6 dBm.</li>
+<li>On exactly those valid, close-range fixes the global curve does well — <strong>95 m median</strong>, and <strong>~46 m for the strongest fixes</strong> — and this holds <em>across independent datasets</em>, which is encouraging evidence the close-range physics transfers.</li>
+<li>Practical implication: a Kierlivia-style controlled curve is a good <strong>short-range</strong> model. To use it network-wide you’d want to extend the controlled stops to longer distances (so the curve’s floor matches Blair’s real detections), or pair it with the centroid+RF estimator for weak fixes.</li>
+</ul>
+<p>(Files: <code>11_kierlivia_global.py</code>, <code>kierlivia_global_results.csv</code>.)</p>
+</section>
+<section id="combining-blair-martin-best-method-predicted-to-blair" class="level2">
+<h2 class="anchored" data-anchor-id="combining-blair-martin-best-method-predicted-to-blair">Combining Blair + Martin (best method, predicted to Blair)</h2>
+<p>Applied the best method (RSSI-weighted centroid + RF residual) with Martin’s 2022 calibration <strong>added as training augmentation</strong>, always testing on held-out Blair GPS points (grouped 5-fold CV). Martin is a separate dataset: ~28-node <em>subset</em> network (25 of 28 nodes shared with Blair), single tag height, its own 16 tags, a year earlier. Martin’s node positions come from Martin-era <code>node_health</code>; all features are built in Blair’s local metre frame so the two are comparable.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 18%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Training data</th>
+<th>Test</th>
+<th style="text-align: right;">n</th>
+<th style="text-align: right;">median (m)</th>
+<th style="text-align: right;">mean (m)</th>
+<th style="text-align: right;">q80 (m)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Blair only</td>
+<td>Blair (CV)</td>
+<td style="text-align: right;">36 385</td>
+<td style="text-align: right;">129.0</td>
+<td style="text-align: right;">171.1</td>
+<td style="text-align: right;">277.5</td>
+</tr>
+<tr class="even">
+<td><strong>Blair + Martin (augmented)</strong></td>
+<td>Blair (CV)</td>
+<td style="text-align: right;">36 385</td>
+<td style="text-align: right;"><strong>127.5</strong></td>
+<td style="text-align: right;">170.2</td>
+<td style="text-align: right;">275.8</td>
+</tr>
+<tr class="odd">
+<td>Martin only</td>
+<td>Blair</td>
+<td style="text-align: right;">36 385</td>
+<td style="text-align: right;">161.3</td>
+<td style="text-align: right;">212.5</td>
+<td style="text-align: right;">335.5</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Interpretation.</strong> Adding Martin makes essentially <strong>no difference</strong> (127.5 vs 129.0 m). Martin <em>alone</em> transfers to Blair reasonably (161 m) given the different network and year, but is worse than Blair’s own data. The residual model is already saturated by Blair’s ~29 k events, and the error is limited by RSSI noise and node geometry — not by training-set size — so extra calibration points from a different layout add little. Combining datasets does not move us toward 50 m. (Files: <code>12_combine_martin.py</code>, <code>combine_martin_results.csv</code>.)</p>
+</section>
+<section id="combined-data-500-m-geometry-gate-trilateration" class="level2">
+<h2 class="anchored" data-anchor-id="combined-data-500-m-geometry-gate-trilateration">Combined data + 500 m geometry gate (trilateration)</h2>
+<p>Took the <code>m1</code> trilateration (1 s events, inverse-dist² weights, top-k strong nodes), pooled <strong>Martin + Blair</strong> for both the curve and the events, and added a geometry gate: keep only events with <strong>≥ 3 detecting nodes within 500 m of the strongest-RSSI node</strong>, localizing with exactly those within-500 m nodes. Honest grouped 5-fold CV (Martin 2022 / Blair 2023 never share a time-block).</p>
+<p>The gate retains 29 174 of 44 798 events (Blair 26 013, Martin 3 161).</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Test set</th>
+<th>curve</th>
+<th style="text-align: right;">n</th>
+<th style="text-align: right;">median (m)</th>
+<th style="text-align: right;">mean (m)</th>
+<th style="text-align: right;">q80 (m)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Blair</td>
+<td>pooled</td>
+<td style="text-align: right;">16 142</td>
+<td style="text-align: right;">202.5</td>
+<td style="text-align: right;">250.8</td>
+<td style="text-align: right;">381.2</td>
+</tr>
+<tr class="even">
+<td>Blair</td>
+<td>Blair-only</td>
+<td style="text-align: right;">16 142</td>
+<td style="text-align: right;">202.6</td>
+<td style="text-align: right;">251.0</td>
+<td style="text-align: right;">382.4</td>
+</tr>
+<tr class="odd">
+<td>Martin</td>
+<td>pooled</td>
+<td style="text-align: right;">1 858</td>
+<td style="text-align: right;">179.8</td>
+<td style="text-align: right;">242.9</td>
+<td style="text-align: right;">393.9</td>
+</tr>
+<tr class="even">
+<td>Both</td>
+<td>pooled</td>
+<td style="text-align: right;">18 000</td>
+<td style="text-align: right;">200.7</td>
+<td style="text-align: right;">250.0</td>
+<td style="text-align: right;">382.1</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Interpretation.</strong> The 500 m gate <strong>does not help</strong> — Blair median ~202 m is <em>worse</em> than the ungated <code>m1</code> (~176 m) and far behind the best method (128 m). Whether the curve is pooled or Blair-only makes no difference (202.5 vs 202.6 m), confirming the curve choice is not the bottleneck. The gate’s intent (guarantee a local cluster of nodes) doesn’t address the real limiter: RSSI is a noisy proxy for distance, and the strongest-RSSI “anchor” is itself a median ~218 m from the bird, so a 500 m radius around it still admits a broad, biased node cluster. Trilateration accuracy is bounded by RSSI noise, not by the presence of far outlier nodes. (Files: <code>13_combined_trilat_gated.py</code>, <code>combined_gated_trilat_results.csv</code>.)</p>
+</section>
+<section id="s-windows-with-max-rssi-new-best-trilateration" class="level2">
+<h2 class="anchored" data-anchor-id="s-windows-with-max-rssi-new-best-trilateration">60 s windows with MAX RSSI (new best trilateration)</h2>
+<p>Blair-only <code>m1</code> trilateration with: <strong>60 s windows</strong>, per node the <strong>maximum</strong> RSSI in the window (not the mean), truth = <strong>mean GPS</strong> over the window, a <strong>1000 m</strong> gate around the strongest node, inverse-dist² weights, top-k nodes. The windowed values feed both the curve and the localization. Honest grouped 5-fold CV (folds = windows).</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th></th>
+<th style="text-align: right;">n</th>
+<th style="text-align: right;">median (m)</th>
+<th style="text-align: right;">mean (m)</th>
+<th style="text-align: right;">q80 (m)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Overall</strong></td>
+<td style="text-align: right;">6 975</td>
+<td style="text-align: right;"><strong>104.4</strong></td>
+<td style="text-align: right;">153.9</td>
+<td style="text-align: right;">248.1</td>
+</tr>
+<tr class="even">
+<td>BOBO</td>
+<td style="text-align: right;">3 368</td>
+<td style="text-align: right;">106.4</td>
+<td style="text-align: right;">158.2</td>
+<td style="text-align: right;">—</td>
+</tr>
+<tr class="odd">
+<td>EAME</td>
+<td style="text-align: right;">3 607</td>
+<td style="text-align: right;">102.4</td>
+<td style="text-align: right;">149.9</td>
+<td style="text-align: right;">—</td>
+</tr>
+</tbody>
+</table>
+<p>Strongest-RSSI confidence filter:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: right;">Strongest RSSI ≥</th>
+<th style="text-align: right;">% kept</th>
+<th style="text-align: right;">median (m)</th>
+<th style="text-align: right;">mean (m)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">−90</td>
+<td style="text-align: right;">76 %</td>
+<td style="text-align: right;">79.2</td>
+<td style="text-align: right;">107.8</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">−85</td>
+<td style="text-align: right;">61 %</td>
+<td style="text-align: right;">64.8</td>
+<td style="text-align: right;">88.5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;"><strong>−80</strong></td>
+<td style="text-align: right;"><strong>44 %</strong></td>
+<td style="text-align: right;"><strong>52.5</strong></td>
+<td style="text-align: right;">71.3</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">−75</td>
+<td style="text-align: right;">30 %</td>
+<td style="text-align: right;">38.8</td>
+<td style="text-align: right;">53.1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">−70</td>
+<td style="text-align: right;">19 %</td>
+<td style="text-align: right;">27.0</td>
+<td style="text-align: right;">40.2</td>
+</tr>
+</tbody>
+</table>
+<p><strong>This is the best result of the whole study.</strong> Overall median 104 m beats the previous best (centroid + RF residual, 128 m), and — crucially for the 50 m goal — <strong>~44 % of fixes reach ~52 m</strong> (≥ −80 dBm) and 30 % reach ~39 m, far more coverage than any earlier method (which hit 50 m on only ~11–19 % of fixes).</p>
+<p><strong>Why the jump.</strong> Taking the <strong>maximum</strong> RSSI per node over a full minute captures that node’s <em>closest-approach</em> beacon and rejects the many weak, multipath-degraded packets that drag the mean down. It effectively denoises by “best of window” rather than “average of window,” sharpening the RSSI–distance relationship exactly where it matters (near nodes).</p>
+<p><strong>One caveat.</strong> Truth here is the 60 s <em>average</em> location; at 3 km/h the walker covers ~50 m in 60 s, so ~±25 m of position smear is baked into the “truth.” A <strong>deployed, slower-moving bird would smear less</strong>, so real-world accuracy with this method could be <em>better</em> than these numbers suggest. (Files: <code>14_blair_60s_maxrssi.py</code>, <code>blair_60s_maxrssi_results.csv</code>.)</p>
+<section id="window-length-sweep" class="level3">
+<h3 class="anchored" data-anchor-id="window-length-sweep">Window-length sweep</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Window</th>
+<th style="text-align: right;">n events</th>
+<th style="text-align: right;">median (m)</th>
+<th style="text-align: right;">mean (m)</th>
+<th style="text-align: right;">≥ −80 dBm share</th>
+<th style="text-align: right;">≥ −80 median (m)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">20 s</td>
+<td style="text-align: right;">19 608</td>
+<td style="text-align: right;">138.7</td>
+<td style="text-align: right;">196.5</td>
+<td style="text-align: right;">29 %</td>
+<td style="text-align: right;">57.2</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">30 s</td>
+<td style="text-align: right;">13 571</td>
+<td style="text-align: right;">121.6</td>
+<td style="text-align: right;">177.0</td>
+<td style="text-align: right;">34 %</td>
+<td style="text-align: right;">54.5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">40 s</td>
+<td style="text-align: right;">10 330</td>
+<td style="text-align: right;">113.5</td>
+<td style="text-align: right;">166.9</td>
+<td style="text-align: right;">38 %</td>
+<td style="text-align: right;">53.2</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">60 s</td>
+<td style="text-align: right;">6 975</td>
+<td style="text-align: right;">104.4</td>
+<td style="text-align: right;">153.9</td>
+<td style="text-align: right;">44 %</td>
+<td style="text-align: right;">52.5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">90 s</td>
+<td style="text-align: right;">4 663</td>
+<td style="text-align: right;">95.5</td>
+<td style="text-align: right;">144.9</td>
+<td style="text-align: right;">52 %</td>
+<td style="text-align: right;">48.4</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">120 s</td>
+<td style="text-align: right;">3 535</td>
+<td style="text-align: right;">88.9</td>
+<td style="text-align: right;">143.9</td>
+<td style="text-align: right;">57 %</td>
+<td style="text-align: right;">52.5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;"><strong>150 s</strong></td>
+<td style="text-align: right;">2 836</td>
+<td style="text-align: right;"><strong>82.8</strong></td>
+<td style="text-align: right;">138.6</td>
+<td style="text-align: right;">61 %</td>
+<td style="text-align: right;">52.4</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">180 s</td>
+<td style="text-align: right;">2 380</td>
+<td style="text-align: right;">83.5</td>
+<td style="text-align: right;">136.2</td>
+<td style="text-align: right;">63 %</td>
+<td style="text-align: right;">56.5</td>
+</tr>
+</tbody>
+</table>
+<p>Accuracy improves with window length up to ~150 s, then <strong>plateaus</strong> (150 s → 82.8 m, 180 s → 83.5 m). A longer window gives each node more chances to log its closest-approach beacon (better max-RSSI denoising) and pulls in more nodes per fix; once every node has caught its closest beacon, extending further adds nothing, leaving a residual ~83 m floor set by RSSI noise and node geometry.</p>
+<p>The trade-offs of longer windows are (a) fewer, <strong>temporally coarser</strong> fixes and (b) more position smear in the <em>calibration</em> truth (the walker covers ~0.83 m/s × W). The latter matters less for a deployed bird that stays in one area over a few minutes, so for survival-model use longer windows are reasonable.</p>
+<p><strong>Choosing WINDOW_S:</strong> 150 s is the accuracy-optimal plateau (overall 83 m; with the strongest-node ≥ −75 dBm filter, ~48 m on ~48 % of fixes; 180 s → 49 m on 51 %). 90 s balances accuracy with temporal resolution (95 m; 48 m on 52 % at ≥ −80 dBm). 60 s for the finest timing (104 m). Note the ≥ −80 dBm <em>median</em> rises slightly at very long windows because the wider net admits more marginal far-but-detected nodes; the ≥ −75 dBm filter is more stable. <code>final_localization.R</code> exposes <code>WINDOW_S</code> (default 90 s; set 150 s to minimise median error for slow/stationary birds). (Files: <code>15_window_sweep.py</code>, <code>window_sweep_results.csv</code>.)</p>
+</section>
+</section>
+<section id="the-actionable-result-a-confidence-filter" class="level2">
+<h2 class="anchored" data-anchor-id="the-actionable-result-a-confidence-filter">The actionable result: a confidence filter</h2>
+<p>For the <strong>best method</strong>, accuracy depends almost entirely on the strongest detection in the fix (node count barely matters). Filtering fixes by strongest-node RSSI (<code>best_method_deployment_filter.csv</code>):</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: right;">Strongest RSSI ≥</th>
+<th style="text-align: right;">% of fixes kept</th>
+<th style="text-align: right;">median (m)</th>
+<th style="text-align: right;">mean (m)</th>
+<th style="text-align: right;">q80 (m)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">−90</td>
+<td style="text-align: right;">49 %</td>
+<td style="text-align: right;">85.9</td>
+<td style="text-align: right;">114.9</td>
+<td style="text-align: right;">180.2</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">−85</td>
+<td style="text-align: right;">32 %</td>
+<td style="text-align: right;">72.1</td>
+<td style="text-align: right;">95.2</td>
+<td style="text-align: right;">146.7</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">−80</td>
+<td style="text-align: right;">19 %</td>
+<td style="text-align: right;">58.1</td>
+<td style="text-align: right;">76.5</td>
+<td style="text-align: right;">117.6</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">−78</td>
+<td style="text-align: right;">16 %</td>
+<td style="text-align: right;">53.5</td>
+<td style="text-align: right;">70.0</td>
+<td style="text-align: right;">109.0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;"><strong>−75</strong></td>
+<td style="text-align: right;"><strong>11 %</strong></td>
+<td style="text-align: right;"><strong>47.0</strong></td>
+<td style="text-align: right;">60.2</td>
+<td style="text-align: right;">92.6</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">−72</td>
+<td style="text-align: right;">8 %</td>
+<td style="text-align: right;">41.8</td>
+<td style="text-align: right;">53.2</td>
+<td style="text-align: right;">81.9</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">−70</td>
+<td style="text-align: right;">6 %</td>
+<td style="text-align: right;">37.5</td>
+<td style="text-align: right;">48.2</td>
+<td style="text-align: right;">74.1</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recommendation for the survival model.</strong> Use the centroid + RF-residual estimator and <strong>keep fixes with strongest-node RSSI ≥ −75 dBm</strong> to obtain ~50 m “which field” accuracy. Lower-confidence fixes are still usable at coarser (~100–130 m) resolution for presence/coarse-movement, just not field-level.</p>
+</section>
+<section id="successes-and-limitations" class="level2">
+<h2 class="anchored" data-anchor-id="successes-and-limitations">Successes and limitations</h2>
+<p><strong>Successes</strong></p>
+<ul>
+<li>Reproduced and stress-tested your pipeline under <em>honest</em> cross-validation.</li>
+<li>Identified the best estimator (centroid + RF residual), beating raw multilateration by ~90 m median.</li>
+<li>Showed a practical confidence filter that <strong>meets the 50 m goal</strong> for a well-defined, sizeable subset of fixes, and quantified the trade-off.</li>
+</ul>
+<p><strong>Limitations</strong></p>
+<ul>
+<li>Overall (all-fix) 50 m is not achievable with this RSSI data; ~128 m is the honest floor.</li>
+<li>Calibrated and tested on a single walk/day; year-to-year node and vegetation changes are not captured.</li>
+<li>Fingerprinting (often the most accurate approach elsewhere) is unavailable until a dense, repeated grid walk exists.</li>
+</ul>
+</section>
+<section id="suggested-next-steps-if-higher-accuracy-is-required" class="level2">
+<h2 class="anchored" data-anchor-id="suggested-next-steps-if-higher-accuracy-is-required">Suggested next steps (if higher accuracy is required)</h2>
+<ol type="1">
+<li><strong>Densify nodes</strong> in priority fields (target ≤ 80–100 m spacing).</li>
+<li><strong>Collect a fingerprinting grid walk</strong> (lawn-mower pattern with revisits, multiple passes) — this unlocks ML fingerprinting and likely sub-50 m.</li>
+<li><strong>Per-node calibration / antenna-orientation controls</strong> to reduce the RSSI noise that makes the nearest node the strongest only ~57 % of the time.</li>
+<li>Combine Blair + Kierlivia for the RSSI–distance curve (curve-based methods only; it will not change the centroid + RF result much).</li>
+</ol>
+</section>
+<section id="file-index" class="level2">
+<h2 class="anchored" data-anchor-id="file-index">File index</h2>
+<ul>
+<li><code>summary_table.csv</code> — method × accuracy table (the key deliverable).</li>
+<li><code>best_method_deployment_filter.csv</code> — confidence-filter accuracy.</li>
+<li><code>cal_lib.py</code> — shared Python helpers.</li>
+<li><code>01_build_dataset.py</code> … <code>10_make_summary_table.py</code> — experiment scripts.</li>
+<li><code>final_localization.R</code> — documented R implementation of the best method.</li>
+<li><code>replication.qmd</code> — step-by-step replication walkthrough.</li>
+<li><code>output/</code> — saved CV results, deployment filter, fitted models.</li>
+</ul>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
