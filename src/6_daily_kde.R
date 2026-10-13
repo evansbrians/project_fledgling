@@ -8,7 +8,8 @@
 # Input is the Stage 2 output (localizations.parquet): one row per localized
 # window, carrying lon / lat and a `weight` (1 / expected_err^2). For each tag,
 # fixes are grouped by day; every bird-day with at least `kde_min_fix` fixes
-# gets a weighted KDE. From each day's KDE we write:
+# gets a weighted KDE whose bandwidth adds the positional error (`kde_err_sd`)
+# to the plug-in scatter bandwidth. From each day's KDE we write:
 #   - a raster (the utilization-distribution surface) as a GeoTIFF, and
 #   - 50/80/95% home-range polygons with their areas (hectares).
 # The KDE is computed once per day in UTM 18N; the raster is written in UTM
@@ -51,7 +52,8 @@ config <-
     out_dir = "results/localization/kde_output",
     utm_crs = 32618,
     kde_levels = c(50, 80, 95),
-    kde_min_fix = 10
+    kde_min_fix = 10,
+    kde_err_sd = 50
   )
 
 set.seed(2358)
@@ -74,7 +76,8 @@ daily_areas <-
       kde_process_tag(
         tag_id, species,
         localizations_dataset, config$out_dir,
-        config$kde_min_fix, config$utm_crs, config$kde_levels
+        config$kde_min_fix, config$utm_crs, config$kde_levels,
+        config$kde_err_sd
       )
     }
   ) %>%
