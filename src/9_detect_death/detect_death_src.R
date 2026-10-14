@@ -133,11 +133,16 @@ build_death_days <-
       ) %>%
       arrange(tag_id, date) %>%
 
-      # Alive baselines from moving days:
+      # Alive baselines from moving days; movement seen before each day:
 
       mutate(
         base_det = median(n_det[move_day]),
         node_base = median(n_nodes[move_day]),
+        moved_before =
+          lag(
+            cumany(move_day),
+            default = FALSE
+          ),
         gap_after =
           replace_na(lead(day_num) - day_num - 1, 0),
         .by = tag_id
@@ -182,15 +187,16 @@ ratio_loglik <-
     }
   }
 
-# Daily log likelihood of the daytime movement category in one state.
-# Days with enough windows fall in moving / still run / neither; sparser
-# days in moving / not; days near fledging use the nest-phase rates:
+# Daily log likelihood of the daytime movement category in one state:
+# moving / still run / neither on full days, moving / not on sparse days,
+# nest-phase rates until the bird has moved.
 
 movement_loglik <-
   function(tag_days, q, pars) {
     full <- tag_days$n_win >= pars$min_win
 
-    nest_phase <- tag_days$days_post_fledge <= pars$nest_days
+    nest_phase <-
+      tag_days$days_post_fledge <= pars$nest_days & !tag_days$moved_before
 
     still <-
       full & !nest_phase & tag_days$still_run >= pars$still_hours
