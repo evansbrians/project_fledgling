@@ -51,6 +51,7 @@ config <-
     states_path = "data/movement_states/tag_movement_states_daytime.csv",
     nests_path = "data/ctt_study_nestlocations_fledgedates.csv",
     tz = "America/New_York",
+    window_days = 30,
     pars =
       list(
         min_win = 5,
@@ -230,7 +231,77 @@ death_estimates <-
     recover_time
   )
 
+# daily survival -------------------------------------------------------------
+
+# Probability dead by the end of each observed day:
+
+p_dead_by <-
+  death_days %>%
+  mutate(
+    p_dead = cumsum(p_death_day),
+    .by = tag_id
+  ) %>%
+  select(
+    tag_id,
+    date,
+    p_dead
+  )
+
+# Alive (1) or dead (0) on each day of the post-fledging window:
+
+daily_survival <-
+  nests %>%
+  semi_join(death_days, by = join_by(tag_id)) %>%
+  mutate(
+    date =
+      map(
+        fledge_date,
+        \(.fledge_date) {
+          .fledge_date + 0:config$window_days
+        }
+      )
+  ) %>%
+  unnest(date) %>%
+  left_join(p_dead_by, by = join_by(tag_id, date)) %>%
+  arrange(tag_id, date) %>%
+
+  # Carry the last observed day forward:
+
+  mutate(
+    p_dead = cummax(replace_na(p_dead, 0)),
+    .by = tag_id
+  ) %>%
+  mutate(
+    p_alive = 1 - p_dead,
+    alive = as.integer(p_alive >= 0.5),
+    confidence = if_else(alive == 1, p_alive, 1 - p_alive),
+    days_post_fledge = as.integer(date - fledge_date)
+  ) %>%
+  left_join(
+    deployed_tags %>%
+      distinct(tag_id, species),
+    by = join_by(tag_id)
+  ) %>%
+  select(
+    tag_id,
+    species,
+    date,
+    days_post_fledge,
+    alive,
+    p_alive,
+    confidence
+  )
+
 # write ----------------------------------------------------------------------
+
+daily_survival %>%
+  mutate(
+    across(
+      c(p_alive, confidence),
+      \(.x) round(.x, 4)
+    )
+  ) %>%
+  write_csv("data/detect_death/tag_daily_survival.csv")
 
 # Local ISO 8601 with UTC offset:
 
@@ -253,6 +324,13 @@ death_estimates %>%
 
 site_states <-
   states_daytime %>%
+  inner_join(nests, by = join_by(tag_id)) %>%
+
+  # Keep the post-fledging window:
+
+  filter(
+    date <= fledge_date + config$window_days
+  ) %>%
   arrange(tag_id, datetime) %>%
   mutate(
     datetime =
@@ -285,13 +363,20 @@ site_tags <-
       format("%Y-%m-%d %H:%M"),
     confidence = round(p_death_date, 3),
     p_died = round(p_died, 3)
+  ) %>%
+  left_join(nests, by = join_by(tag_id)) %>%
+  mutate(
+    window_end = fledge_date + config$window_days
   )
 
 # Death-day posterior, for the site:
 
 site_posterior <-
   death_days %>%
-  filter(p_death_day >= 0.001) %>%
+  filter(
+    p_death_day >= 0.001,
+    date <= fledge_date + config$window_days
+  ) %>%
   mutate(p = round(p_death_day, 4)) %>%
   select(
     tag_id,
